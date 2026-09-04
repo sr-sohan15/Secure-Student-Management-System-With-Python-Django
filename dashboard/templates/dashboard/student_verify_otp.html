@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verify OTP - Student Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>body { font-family: 'Plus Jakarta Sans', sans-serif; }</style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
+
+    <div class="absolute -top-40 -left-40 w-96 h-96 bg-indigo-600/20 rounded-full blur-3xl pointer-events-none"></div>
+    <div class="absolute -bottom-40 -right-40 w-96 h-96 bg-blue-600/20 rounded-full blur-3xl pointer-events-none"></div>
+
+    <div class="relative w-full max-w-md bg-slate-900/80 backdrop-blur-xl border border-slate-800 p-6 sm:p-8 md:p-10 rounded-3xl shadow-2xl shadow-indigo-950/50 text-center mx-auto">
+        
+        <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-tr from-indigo-600 to-violet-500 text-white shadow-lg shadow-indigo-500/30 mb-4">
+            ✉️
+        </div>
+        <h1 class="text-2xl font-extrabold text-white">Enter Verification Code</h1>
+        <p class="text-slate-400 text-sm mt-1.5 px-2">We've sent a 6-digit OTP to your registered email for Student ID: <span class="text-indigo-400 font-mono font-bold">{{ student_id }}</span></p>
+        <p class="text-xs text-amber-400/90 bg-amber-500/10 border border-amber-500/20 py-2 px-3 rounded-xl mt-3">💡 Check your VS Code terminal for the OTP code!</p>
+
+        <form method="POST" class="mt-6 space-y-5">
+            {% csrf_token %}
+            
+            {% if form.non_field_errors %}
+                <div class="bg-red-500/10 border border-red-500/30 text-red-400 px-4 py-3 rounded-xl text-xs font-medium">
+                    {{ form.non_field_errors.0 }}
+                </div>
+            {% endif %}
+
+            <div>
+                {{ form.otp_code }}
+                {% if form.otp_code.errors %}
+                    <p class="text-red-400 text-xs mt-1">{{ form.otp_code.errors.0 }}</p>
+                {% endif %}
+            </div>
+
+            <button type="submit" class="w-full py-3.5 px-4 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-semibold text-sm rounded-xl shadow-lg shadow-indigo-600/30 transition-all sm:text-base">
+                Verify & Sign In
+            </button>
+        </form>
+
+        <div class="mt-6 pt-4 border-t border-slate-800">
+            <a href="{% url 'student_login' %}" class="text-xs font-semibold text-slate-400 hover:text-indigo-400 transition">
+                &larr; Back to Student ID Entry
+            </a>
+        </div>
+
+    </div>
+
+</body>
+</html>

@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Management Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        function toggleStudentForm() {
+            const modal = document.getElementById('studentModal');
+            modal.classList.toggle('hidden');
+        }
+        function toggleStatsModal() {
+            const modal = document.getElementById('statsModal');
+            modal.classList.toggle('hidden');
+        }
+    </script>
+</head>
+<body class="bg-gray-100 font-sans antialiased text-slate-900">
+
+    <div class="min-h-screen flex flex-col md:flex-row">
+        
+        <!-- Sidebar -->
+        <div class="w-full md:w-64 bg-white text-slate-900 border-b md:border-b-0 md:border-r border-gray-300 flex flex-col justify-between p-5 shadow-sm">
+            <div>
+                <div class="flex items-center justify-between mb-5">
+                    <h2 class="text-xl sm:text-2xl font-black tracking-wider text-indigo-700">
+                        {% if request.user.is_superuser %}Admin Panel{% else %}Student Panel{% endif %}
+                    </h2>
+                    <a href="{% url 'student_logout' %}" class="md:hidden flex items-center space-x-1.5 py-1.5 px-3 rounded-xl bg-rose-50 hover:bg-rose-600 text-rose-700 hover:text-white transition font-bold text-xs border border-rose-300">
+                        <span>🚪 Logout</span>
+                    </a>
+                </div>
+                
+                <div class="flex items-center md:flex-col bg-gray-50 border border-gray-300 p-4 rounded-2xl mb-6 shadow-sm gap-3 md:gap-0">
+                    <div class="w-12 h-12 md:w-16 md:h-16 bg-indigo-600 rounded-2xl flex items-center justify-center text-lg md:text-xl font-bold text-white shadow md:mb-3 shrink-0">
+                        {% if request.user.is_superuser %}SO{% else %}{{ request.user.username|slice:":2"|upper }}{% endif %}
+                    </div>
+                    <div class="text-left md:text-center overflow-hidden">
+                        <h5 class="font-extrabold text-sm md:text-lg text-slate-900 capitalize truncate">{% if request.user.is_superuser %}Sohan{% else %}{{ request.user.username }}{% endif %}</h5>
+                        <p class="text-xs font-semibold text-gray-600 truncate mt-0.5">
+                            {% if request.user.is_superuser %}System Administrator{% else %}Enrolled Student{% endif %}
+                        </p>
+                    </div>
+                </div>
+
+                <nav class="hidden md:block space-y-2">
+                    <a href="{% url 'dashboard' %}" class="flex items-center space-x-3 py-3 px-4 rounded-xl bg-indigo-600 text-white font-bold shadow-md transition">
+                        <span>📊 Dashboard</span>
+                    </a>
+                </nav>
+            </div>
+
+            <!-- Desktop Logout Button -->
+            <div class="hidden md:block pt-6 border-t border-gray-200">
+                <a href="{% url 'student_logout' %}" class="flex items-center justify-center space-x-2 py-2.5 px-4 rounded-xl bg-rose-50 hover:bg-rose-600 text-rose-700 hover:text-white transition font-bold text-sm border border-rose-300">
+                    <span>🚪 Logout</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- Main Content Area -->
+        <div class="flex-1 p-4 sm:p-6 md:p-10 bg-gray-100 overflow-x-hidden">
+            
+            <header class="mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4 bg-white border border-gray-300 p-6 rounded-3xl shadow-sm">
+                <div>
+                    <h1 class="text-xl sm:text-2xl md:text-3xl font-black text-slate-900 tracking-tight">
+                        {% if request.user.is_superuser %}Admin Dashboard{% else %}Student Portal{% endif %}
+                    </h1>
+                    <p class="text-xs sm:text-sm font-medium text-gray-600 mt-1">
+                        {% if request.user.is_superuser %}Manage student records, review database items, and control security permissions.{% else %}View your secure institutional records and details.{% endif %}
+                    </p>
+                </div>
+
+                <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
+                    {% if request.user.is_superuser %}
+                    <a href="{% url 'export_csv' %}" class="bg-slate-900 hover:bg-black text-white text-xs sm:text-sm font-bold px-4 py-3 rounded-xl shadow-md transition flex items-center justify-center space-x-2">
+                        <span>📥 Export CSV</span>
+                    </a>
+                    {% endif %}
+                    <button onclick="toggleStatsModal()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs sm:text-sm font-bold px-4 py-3 rounded-xl shadow-md transition flex items-center justify-center space-x-2">
+                        <span>📈 Statistics</span>
+                    </button>
+                    {% if request.user.is_superuser %}
+                    <button onclick="toggleStudentForm()" class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs sm:text-sm font-bold px-4 py-3 rounded-xl shadow-md transition flex items-center justify-center space-x-2">
+                        <span>➕ Add Student</span>
+                    </button>
+                    {% endif %}
+                </div>
+            </header>
+
+            <!-- Statistics Modal -->
+            <div id="statsModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+                <div class="bg-white border border-gray-300 rounded-3xl shadow-2xl w-full max-w-3xl p-6 sm:p-8 mx-auto text-slate-900">
+                    <div class="flex justify-between items-center mb-6 pb-4 border-b border-gray-200">
+                        <h3 class="text-lg sm:text-xl font-bold flex items-center">
+                            <span class="bg-emerald-100 text-emerald-700 p-2 rounded-xl mr-3 text-sm font-bold">📊</span> 
+                            System Analytics & Statistics
+                        </h3>
+                        <button onclick="toggleStatsModal()" class="text-gray-500 hover:text-black text-2xl font-bold">&times;</button>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+                        <div class="bg-gray-50 border border-gray-300 p-5 rounded-2xl flex items-center justify-between">
+                            <div>
+                                <p class="text-xs font-bold text-gray-600 uppercase tracking-wider">Total Students</p>
+                                <h3 class="text-2xl sm:text-3xl font-black text-slate-900 mt-1">{{ total_students }}</h3>
+                            </div>
+                            <div class="w-12 h-12 bg-indigo-100 text-indigo-700 rounded-xl flex items-center justify-center font-bold text-xl">👥</div>
+                        </div>
+                        <div class="bg-gray-50 border border-gray-300 p-5 rounded-2xl flex items-center justify-between">
+                            <div>
+                                <p class="text-xs font-bold text-gray-600 uppercase tracking-wider">Average CGPA</p>
+                                <h3 class="text-2xl sm:text-3xl font-black text-indigo-700 mt-1">{{ avg_cgpa }}</h3>
+                            </div>
+                            <div class="w-12 h-12 bg-emerald-100 text-emerald-700 rounded-xl flex items-center justify-center font-bold text-xl">📊</div>
+                        </div>
+                        <div class="bg-gray-50 border border-gray-300 p-5 rounded-2xl flex items-center justify-between">
+                            <div>
+                                <p class="text-xs font-bold text-gray-600 uppercase tracking-wider">Average SGPA</p>
+                                <h3 class="text-2xl sm:text-3xl font-black text-purple-700 mt-1">{{ avg_sgpa }}</h3>
+                            </div>
+                            <div class="w-12 h-12 bg-purple-100 text-purple-700 rounded-xl flex items-center justify-center font-bold text-xl">📈</div>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-end pt-4 border-t border-gray-200">
+                        <button onclick="toggleStatsModal()" class="w-full sm:w-auto px-6 py-2.5 bg-gray-200 hover:bg-gray-300 text-slate-800 text-sm font-bold rounded-xl transition">Close</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Add Student Modal -->
+            {% if request.user.is_superuser %}
+            <div id="studentModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+                <div class="bg-white border border-gray-300 rounded-3xl shadow-2xl w-full max-w-2xl p-6 sm:p-8 overflow-y-auto max-h-[90vh] text-slate-900">
+                    <div class="flex justify-between items-center mb-6 pb-4 border-b border-gray-200">
+                        <h3 class="text-lg sm:text-xl font-bold flex items-center">
+                            <span class="bg-indigo-100 text-indigo-700 p-2 rounded-xl mr-3 text-sm font-bold">📝</span> 
+                            Add New Student Information
+                        </h3>
+                        <button onclick="toggleStudentForm()" class="text-gray-500 hover:text-black text-2xl font-bold">&times;</button>
+                    </div>
+                    
+                    <form method="POST" enctype="multipart/form-data" class="space-y-5">
+                        {% csrf_token %}
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {% for field in form %}
+                            <div class="flex flex-col space-y-1.5">
+                                <label class="text-xs font-bold text-slate-800 uppercase tracking-wider">{{ field.label }}</label>
+                                {{ field }}
+                                {% if field.errors %}
+                                    <span class="text-rose-600 text-xs font-semibold mt-1">{{ field.errors.0 }}</span>
+                                {% endif %}
+                            </div>
+                            {% endfor %}
+                        </div>
+                        <div class="flex flex-col-reverse sm:flex-row justify-end pt-4 space-y-2 space-y-reverse sm:space-y-0 sm:space-x-3 border-t border-gray-200">
+                            <button type="button" onclick="toggleStudentForm()" class="w-full sm:w-auto px-5 py-2.5 bg-gray-200 hover:bg-gray-300 text-slate-800 text-sm font-bold rounded-xl transition">Cancel</button>
+                            <button type="submit" class="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-6 py-2.5 rounded-xl shadow-md transition text-sm">
+                                Submit Record
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Records Section -->
+            <div class="bg-white border border-gray-300 rounded-3xl shadow-sm overflow-hidden w-full">
+                <div class="px-5 sm:px-6 py-5 border-b border-gray-200 flex flex-col sm:flex-row justify-between items-start sm:items-center bg-gray-50/80 gap-4">
+                    <h3 class="text-base sm:text-lg font-black text-slate-900 tracking-wide">Student Records Directory</h3>
+                    
+                    <form method="GET" class="flex items-center w-full sm:w-auto gap-2">
+                        <input type="text" name="q" value="{{ query }}" placeholder="Search name or ID..." class="px-4 py-2.5 bg-white border border-gray-300 rounded-xl text-xs sm:text-sm font-medium text-slate-900 placeholder-gray-500 focus:outline-none focus:border-indigo-600 w-full sm:w-64 transition">
+                        <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition shrink-0 shadow-sm">Search</button>
+                    </form>
+                </div>
+
+                <!-- Desktop Table View -->
+                <div class="hidden md:block w-full overflow-x-auto pb-2">
+                    <table class="w-full text-left border-collapse text-sm min-w-[750px]">
+                        <thead>
+                            <tr class="bg-gray-100 text-slate-800 text-xs uppercase tracking-wider font-extrabold border-b border-gray-300 whitespace-nowrap">
+                                <th class="py-4 px-6">Image</th>
+                                <th class="py-4 px-6">Name</th>
+                                <th class="py-4 px-6">Student ID</th>
+                                <th class="py-4 px-6">Semester</th>
+                                <th class="py-4 px-6">CGPA</th>
+                                <th class="py-4 px-6">SGPA</th>
+                                <th class="py-4 px-6">Email</th>
+                                {% if request.user.is_superuser %}
+                                <th class="py-4 px-6 text-center">Action</th>
+                                {% endif %}
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200 text-slate-900 font-medium">
+                            {% for student in students %}
+                            <tr class="hover:bg-gray-50 transition">
+                                <td class="py-4 px-6">
+                                    {% if student.image %}
+                                        <img src="{{ student.image.url }}" class="w-10 h-10 rounded-full object-cover shadow-sm border border-gray-300">
+                                    {% else %}
+                                        <div class="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-xs text-gray-700 font-bold border border-gray-300">N/A</div>
+                                    {% endif %}
+                                </td>
+                                <td class="py-4 px-6 font-extrabold text-slate-900 whitespace-nowrap">{{ student.name }}</td>
+                                <td class="py-4 px-6 font-mono font-bold text-slate-900 whitespace-nowrap">{{ student.student_id }}</td>
+                                <td class="py-4 px-6 font-semibold whitespace-nowrap">{{ student.semester }}</td>
+                                <td class="py-4 px-6 font-extrabold text-indigo-700 whitespace-nowrap">{{ student.cgpa }}</td>
+                                <td class="py-4 px-6 font-extrabold text-purple-700 whitespace-nowrap">{{ student.sgpa }}</td>
+                                <td class="py-4 px-6 text-slate-700 font-semibold text-xs whitespace-nowrap">{{ student.email }}</td>
+                                
+                                {% if request.user.is_superuser %}
+                                <td class="py-4 px-6 text-center space-x-2 whitespace-nowrap">
+                                    <a href="{% url 'edit_student' student.pk %}" class="inline-flex items-center px-3 py-1.5 bg-indigo-50 border border-indigo-200 text-indigo-700 hover:bg-indigo-600 hover:text-white text-xs font-bold rounded-xl transition">
+                                        Edit
+                                    </a>
+                                    <a href="{% url 'delete_student' student.pk %}" onclick="return confirm('Are you sure you want to delete this record?')" class="inline-flex items-center px-3 py-1.5 bg-rose-50 border border-rose-200 text-rose-700 hover:bg-rose-600 hover:text-white text-xs font-bold rounded-xl transition">
+                                        Delete
+                                    </a>
+                                </td>
+                                {% endif %}
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="{% if request.user.is_superuser %}8{% else %}7{% endif %}" class="py-12 text-center text-gray-500 font-bold">
+                                    <p class="text-sm">No student records found in the database.</p>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Mobile Card View -->
+                <div class="block md:hidden p-4 space-y-4">
+                    {% for student in students %}
+                    <div class="bg-white border-2 border-gray-200 rounded-2xl p-5 shadow-sm space-y-4 relative overflow-hidden">
+                        <div class="absolute top-0 left-0 w-1.5 h-full bg-indigo-600"></div>
+
+                        <div class="flex items-center space-x-3.5">
+                            {% if student.image %}
+                                <img src="{{ student.image.url }}" class="w-14 h-14 rounded-2xl object-cover shadow-sm border border-gray-300 shrink-0">
+                            {% else %}
+                                <div class="w-14 h-14 rounded-2xl bg-gray-200 border border-gray-300 flex items-center justify-center text-xs text-gray-700 font-bold shrink-0">N/A</div>
+                            {% endif %}
+                            <div class="min-w-0 flex-1">
+                                <h4 class="font-black text-slate-900 text-base truncate">{{ student.name }}</h4>
+                                <div class="inline-flex items-center font-mono text-xs bg-indigo-50 border border-indigo-200 text-indigo-700 py-0.5 px-2.5 rounded-lg mt-1 font-bold">
+                                    ID: {{ student.student_id }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-2 text-xs">
+                            <div class="bg-gray-50 border border-gray-200 p-2.5 rounded-xl flex flex-col">
+                                <span class="text-gray-500 text-[10px] font-extrabold uppercase tracking-wider">Semester</span>
+                                <span class="font-bold text-slate-900 mt-0.5 truncate">{{ student.semester }}</span>
+                            </div>
+                            <div class="bg-gray-50 border border-gray-200 p-2.5 rounded-xl flex flex-col">
+                                <span class="text-gray-500 text-[10px] font-extrabold uppercase tracking-wider">Email</span>
+                                <span class="font-bold text-slate-900 mt-0.5 truncate">{{ student.email }}</span>
+                            </div>
+                            <div class="bg-gray-50 border border-gray-200 p-2.5 rounded-xl flex items-center justify-between">
+                                <span class="text-gray-500 text-[10px] font-extrabold uppercase tracking-wider">CGPA</span>
+                                <span class="px-2 py-0.5 text-xs font-extrabold rounded-lg bg-indigo-50 border border-indigo-200 text-indigo-700">{{ student.cgpa }}</span>
+                            </div>
+                            <div class="bg-gray-50 border border-gray-200 p-2.5 rounded-xl flex items-center justify-between">
+                                <span class="text-gray-500 text-[10px] font-extrabold uppercase tracking-wider">SGPA</span>
+                                <span class="px-2 py-0.5 text-xs font-extrabold rounded-lg bg-purple-50 border border-purple-200 text-purple-700">{{ student.sgpa }}</span>
+                            </div>
+                        </div>
+
+                        {% if request.user.is_superuser %}
+                        <div class="flex items-center space-x-2 pt-2 border-t border-gray-200">
+                            <a href="{% url 'edit_student' student.pk %}" class="flex-1 text-center py-2.5 bg-indigo-50 border border-indigo-200 text-indigo-700 hover:bg-indigo-600 hover:text-white text-xs font-bold rounded-xl transition">
+                                Edit Record
+                            </a>
+                            <a href="{% url 'delete_student' student.pk %}" onclick="return confirm('Are you sure you want to delete this record?')" class="flex-1 text-center py-2.5 bg-rose-50 border border-rose-200 text-rose-700 hover:bg-rose-600 hover:text-white text-xs font-bold rounded-xl transition">
+                                Delete Record
+                            </a>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% empty %}
+                    <div class="py-12 text-center text-gray-500 font-bold">
+                        <p class="text-sm">No student records found in the database.</p>
+                    </div>
+                    {% endfor %}
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+
+</body>
+</html>
